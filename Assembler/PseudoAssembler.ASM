@@ -1,45 +1,18 @@
-format PE CONSOLE 4.0
-entry main
+;*******************************************
+;*	       (X) SamLaren 2016	   *
+;*******************************************
+;*   Metamorphic Pseudo Assembler	   *
+;*					   *
+;* release v1.0 	    20/12-2016	   *
+;*					   *
+;*******************************************
 
-include 'INCLUDE/win32a.inc'
+
+buff		equ buffert
+decryptorSize	equ bufferSize
+
+
 include 'pseudo_assembler.inc'
-
-
-section '.code' readable writeable executable
-main:
-
-
-
-
-
-	fix_jmps
-
-
-
-	xor eax, eax
-	xor ecx, ecx
-
-	call buff
-lae:
-	pushad
-	cinvoke printf, hex, eax
-	popad
-	jmp _end
-
-
-lzx1:
-	cmp ecx, [decryptorSize]
-	je _end
-	movzx edx, byte[buff+ecx]
-	pushad
-	cinvoke printf, hex, edx
-	popad
-	inc ecx
-	jmp lzx1
-
-_end:
-	invoke Sleep, -1
-
 
 
 fixAAjmps:
@@ -127,9 +100,6 @@ store_address		equ [ebp+12]
 	xor eax, eax
 	xor edx, edx
 
-	cmp [pseudo.type], TYPEPOPM
-	je @popm
-
 	cmp [pseudo.type], TYPEPUSHAD
 	je @ps_pushad
 
@@ -210,21 +180,6 @@ _@exit:
 	mov esp, ebp
 	pop ebp
 	ret
-
-@popm:
-	mov [pseudo.len], 0x6
-	mov edi, buff_address
-	add edi, [decryptorSize]       ; Get next spot for instruction
-	movzx eax, [pseudo.len]
-	add [decryptorSize], eax       ; update decryptor size
-	mov al, 0x8F
-	stosb
-	mov al, 0x05
-	stosb
-	mov eax, [pseudo.dst]
-	stosd
-	xor eax, eax
-	jmp _@exit
 
 @ps_popad:
 	mov [pseudo.len], 0x1
@@ -591,7 +546,7 @@ _label:
 	mov al, 0xE9
 	stosb
 
-	mov eax, [pseudo.dst]
+	mov eax, 0
 	stosd
 	jmp _@exit
 
@@ -758,7 +713,6 @@ retfunc:
 
 
 
-
 Rand:			  ; Random number between 0 and 10
 	;push ebp
 	;mov ebp, esp
@@ -775,53 +729,3 @@ Rand:			  ; Random number between 0 and 10
 	;mov esp, ebp
 	;pop ebp
 ret
-
-
-
-section '.data' readable writeable
-hwnd		dd ?
-pId		dd ?
-nn		db 'Counter-Strike: Global Offensive',0
-procName	db 'csgo.exe',0
-procName2	db 'csgo.exe',0
-hex	db "%X",13,10,0
-stri	db "%s",13,10,0
-hSnap		dd ?
-pEntry		PROCESSENTRY32
-label1		dd 0
-label2		dd 0
-label3		dd 0
-label4		dd 0
-label5		dd 0
-
-decryptorSize	dd 0
-pseudo		INSTR
-buff		dd ?
-
-
-section '.idata' import data readable
-library kernel32, 'KERNEL32.DLL',\
-		user32, 'USER32.DLL',\
-		msvcrt, 'MSVCRT.DLL'
-			
-import	kernel32,\
-		CreateToolhelp32Snapshot, 'CreateToolhelp32Snapshot',\
-		ExitProcess, 'ExitProcess',\
-		Module32First, 'Module32First',\
-		Module32Next, 'Module32Next',\
-		CloseHandle, 'CloseHandle',\
-		WriteProcessMemory, 'WriteProcessMemory',\
-		ReadProcessMemory, 'ReadProcessMemory',\
-		OpenProcess, 'OpenProcess',\
-		Process32First, 'Process32First',\
-		Process32Next, 'Process32Next',\
-		Sleep, 'Sleep'
-		
-import	user32,\
-		FindWindow, 'FindWindowA',\
-		GetWindowThreadProcessId, 'GetWindowThreadProcessId',\
-		GetAsyncKeyState, 'GetAsyncKeyState'
- 
-import	msvcrt,\
-		printf, 'printf',\
-		stricmp, '_stricmp'
